@@ -1,0 +1,12 @@
+{
+  "name": "knowledge_share_admin_bot",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/mhmda-83/knowledge_share_admin_bot",
+  "author": "Mohammad MohammadAlian <mralian.dev@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^8.2.0",
+    "node-telegram-bot-api": "^0.50.0"
+  }
+}
