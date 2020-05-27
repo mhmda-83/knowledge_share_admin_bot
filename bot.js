@@ -34,4 +34,28 @@ bot.on('new_chat_members', (message) => {
   });
 });
 
+bot.onText(/\/removeInactiveUsers/, async (message) => {
+  if (
+    message.chat.type === 'private' &&
+    message.from.id == process.env.ADMIN_USER_ID
+  ) {
+    const users = await User.find();
+    const yesterday = new Date().getTime() - 1000 * 60 * 60 * 24;
+    users.forEach((user) => {
+      const lastActivityDate = new Date(user.lastActivityDate);
+      if (lastActivityDate.getTime() < yesterday) {
+        bot.kickChatMember(process.env.GROUP_ID, user.id);
+        bot.sendMessage(
+          message.chat.id,
+          `کاربر <a href="tg://user?id=${user.id}">${user.id}</a> ریمو شد`,
+          {
+            reply_to_message_id: message.message_id,
+            parse_mode: 'HTML',
+          }
+        );
+      }
+    });
+  }
+});
+
 module.exports = bot;
