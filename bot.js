@@ -8,7 +8,6 @@ const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, {
 
 bot.on('new_chat_members', (message) => {
   const newMembers = message.new_chat_members;
-  console.log(message.chat.id);
 
   newMembers.forEach(async (user) => {
     try {
@@ -54,6 +53,9 @@ bot.onText(/\/removeInactiveUsers/, async (message) => {
           }
         );
       }
+    });
+    bot.sendMessage(message.chat.id, 'عملیات با موفقیت انجام شد', {
+      reply_to_message_id: message.message_id,
     });
   }
 });
