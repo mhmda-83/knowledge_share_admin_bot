@@ -32,15 +32,16 @@ bot.on('message', async (message, metadata) => {
 bot.on('new_chat_members', (message) => {
   const newMembers = message.new_chat_members;
 
+  bot.deleteMessage(message.chat.id, message.message_id);
   newMembers.forEach(async (user) => {
     if (user.is_bot) return;
     try {
       await User.create({ id: user.id, lastActivityDate: Date(message.date) });
       bot.sendMessage(
-        message.chat.id,
-        `کاربر ${user.first_name} به دیتابیس اضافه شد`,
+        process.env.ADMIN_USER_ID,
+        `کاربر <a href="tg://user?id=${user.id}">${user.first_name}</a> به دیتابیس اضافه شد`,
         {
-          reply_to_message_id: message.message_id,
+          parse_mode: 'HTML',
         }
       );
     } catch (err) {
@@ -63,7 +64,7 @@ bot.on('left_chat_member', async (message) => {
   bot.deleteMessage(message.chat.id, message.message_id);
   bot.sendMessage(
     process.env.ADMIN_USER_ID,
-    `کاربر <a href="tg://user?id=${deletedUser.id}">${deletedUser.id}</a> از دیتابیس حذف شد`,
+    `کاربر <a href="tg://user?id=${deletedUser.id}">${deletedUser.first_name}</a> از دیتابیس حذف شد`,
     {
       parse_mode: 'HTML',
     }
@@ -83,7 +84,7 @@ bot.onText(/\/removeInactiveUsers/, async (message) => {
         bot.kickChatMember(process.env.GROUP_ID, user.id);
         bot.sendMessage(
           message.chat.id,
-          `کاربر <a href="tg://user?id=${user.id}">${user.id}</a> ریمو شد`,
+          `کاربر <a href="tg://user?id=${user.id}">${user.first_name}</a> ریمو شد`,
           {
             reply_to_message_id: message.message_id,
             parse_mode: 'HTML',
