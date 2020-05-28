@@ -57,6 +57,19 @@ bot.on('new_chat_members', (message) => {
   });
 });
 
+bot.on('left_chat_member', async (message) => {
+  const deletedUser = message.left_chat_member;
+  await User.deleteOne({ id: deletedUser.id });
+  bot.deleteMessage(message.chat.id, message.message_id);
+  bot.sendMessage(
+    process.env.ADMIN_USER_ID,
+    `کاربر <a href="tg://user?id=${deletedUser.id}">${deletedUser.id}</a> از دیتابیس حذف شد`,
+    {
+      parse_mode: 'HTML',
+    }
+  );
+});
+
 bot.onText(/\/removeInactiveUsers/, async (message) => {
   if (
     message.chat.type === 'private' &&
