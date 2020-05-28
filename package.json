@@ -5,8 +5,12 @@
   "repository": "https://github.com/mhmda-83/knowledge_share_admin_bot",
   "author": "Mohammad MohammadAlian <mralian.dev@gmail.com>",
   "license": "MIT",
+  "scripts": {
+    "start": "node index.js"
+  },
   "dependencies": {
     "dotenv": "^8.2.0",
+    "express": "^4.17.1",
     "mongoose": "^5.9.15",
     "node-telegram-bot-api": "^0.50.0"
   }

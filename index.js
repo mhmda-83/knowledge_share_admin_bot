@@ -1,5 +1,9 @@
 const dotenv = require('dotenv');
 const mongoose = require('mongoose');
+const express = require('express');
+
+const app = express();
+app.use(express.json());
 
 dotenv.config();
 
@@ -12,5 +16,10 @@ mongoose
   })
   .then(() => {
     console.log('db connected :)');
-    require('./bot');
+    const bot = require('./bot');
+    app.post(`/bot${process.env.TELEGRAM_BOT_TOKEN}`, (req, res) => {
+      bot.processUpdate(req.body);
+      res.sendStatus(200);
+    });
+    app.listen(process.env.PORT);
   });

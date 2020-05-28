@@ -2,9 +2,17 @@ const TelegramBot = require('node-telegram-bot-api');
 
 const User = require('./User');
 
-const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, {
-  polling: true,
-});
+let bot;
+if (process.env.NODE_ENV === 'development') {
+  bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, {
+    polling: true,
+  });
+}
+if (process.env.NODE_ENV === 'production') {
+  bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN);
+  const url = `${process.env.APP_URL}/bot${process.env.TELEGRAM_BOT_TOKEN}`;
+  bot.setWebHook(url);
+}
 
 const allowedMessageType = ['text', 'photo', 'video', 'voice', 'poll'];
 
