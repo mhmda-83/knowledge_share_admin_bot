@@ -7,7 +7,7 @@ mongoose
   .connect(process.env.MONGO_CONNECTION_STRING, {
     useCreateIndex: true,
     useNewUrlParser: true,
-    useFindAndModify: true,
+    useFindAndModify: false,
     useUnifiedTopology: true,
   })
   .then(() => {
