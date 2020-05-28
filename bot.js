@@ -6,6 +6,21 @@ const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, {
   polling: true,
 });
 
+const allowedMessageType = ['text', 'photo', 'video', 'voice', 'poll'];
+
+bot.on('message', async (message, metadata) => {
+  if (
+    allowedMessageType.includes(metadata.type) &&
+    message.chat.type === 'supergroup' &&
+    message.chat.id == process.env.GROUP_ID
+  ) {
+    await User.findOneAndUpdate(
+      { id: message.from.id },
+      { lastActivityDate: Date(message.date) }
+    );
+  }
+});
+
 bot.on('new_chat_members', (message) => {
   const newMembers = message.new_chat_members;
 
@@ -58,18 +73,6 @@ bot.onText(/\/removeInactiveUsers/, async (message) => {
     bot.sendMessage(message.chat.id, 'عملیات با موفقیت انجام شد', {
       reply_to_message_id: message.message_id,
     });
-  }
-});
-
-bot.on('text', async (message) => {
-  if (
-    message.chat.type === 'supergroup' &&
-    message.chat.id == process.env.GROUP_ID
-  ) {
-    await User.findOneAndUpdate(
-      { id: message.from.id },
-      { lastActivityDate: Date(message.date) }
-    );
   }
 });
 
