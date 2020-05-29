@@ -6,6 +6,14 @@ const userSchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
+  joinDate: {
+    type: Date,
+    default: Date.now,
+  },
+  numberOfLearnedThings: {
+    type: Number,
+    default: 0,
+  },
   lastActivityDate: {
     type: Date,
   },
