@@ -1,4 +1,5 @@
 const TelegramBot = require('node-telegram-bot-api');
+const JDate = require('jalali-date');
 
 const User = require('./models/User');
 
@@ -25,6 +26,57 @@ bot.on('message', async (message, metadata) => {
     await User.findOneAndUpdate(
       { id: message.from.id },
       { lastActivityDate: Date(message.date) }
+    );
+  }
+});
+
+bot.onText(/\/start/, (message) => {
+  if (message.chat.type === 'private')
+    bot.sendMessage(message.chat.id, 'خوش اومدی :)', {
+      reply_to_message_id: message.message_id,
+    });
+});
+
+bot.onText(/\/stat/, async (message) => {
+  if (message.chat.type === 'private') {
+    const user = await User.findOne({ id: message.from.id });
+    if (user === null)
+      return bot.sendMessage(
+        message.chat.id,
+        'اطلاعاتی از شما در دیتابیس وجود ندارد',
+        { reply_to_message_id: message.message_id }
+      );
+    const lastActivityJalaliDate = new JDate(user.lastActivityDate);
+    bot.sendMessage(
+      message.chat.id,
+      `
+    تعداد چیزایی که یاد گرفتید: ${user.numberOfLearnedThings} 👌
+تعداد دفعاتی که بقیه از پیام های شما چیزی رو یاد گرفتن: ${
+        user.numberOfTaughtThings
+      } 😊
+تاریخ و ساعت آخرین فعالیتی که ثبت شده: ${lastActivityJalaliDate.format(
+        'YYYY/MM/DD '
+      )} ${user.lastActivityDate.getHours()}:${user.lastActivityDate.getMinutes()}:${user.lastActivityDate.getSeconds()} ✌
+    `,
+      { reply_to_message_id: message.message_id }
+    );
+  }
+});
+
+bot.onText(/^\+$/, async (message) => {
+  if (
+    message.chat.type === 'supergroup' &&
+    message.chat.id == process.env.GROUP_ID &&
+    message.reply_to_message &&
+    message.reply_to_message.from.id != message.from.id
+  ) {
+    await User.findOneAndUpdate(
+      { id: message.from.id },
+      { $inc: { numberOfLearnedThings: 1 } }
+    );
+    await User.findOneAndUpdate(
+      { id: message.reply_to_message.from.id },
+      { $inc: { numberOfTaughtThings: 1 } }
     );
   }
 });

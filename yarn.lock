@@ -516,6 +516,11 @@ isstream@~0.1.2:
   resolved "https://registry.yarnpkg.com/isstream/-/isstream-0.1.2.tgz#47e63f7af55afa6f92e1500e690eb8b8529c099a"
   integrity sha1-R+Y/evVa+m+S4VAOaQ64uFKcCZo=
 
+jalali-date@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/jalali-date/-/jalali-date-1.1.0.tgz#62b11f82e19e07f83fe47caa786d137ce499121e"
+  integrity sha512-sjmFSfYhbEvIsQGcht2YKHMKxiIJp6rmQwFzq8zywr0K6nZqyaHmpr2NZfodEhB9kTkTOZhr19npMLZhpufEFQ==
+
 jsbn@~0.1.0:
   version "0.1.1"
   resolved "https://registry.yarnpkg.com/jsbn/-/jsbn-0.1.1.tgz#a5e654c2e5a2deb5f201d96cefbca80c0ef2f513"
