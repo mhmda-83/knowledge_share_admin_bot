@@ -1,6 +1,6 @@
 const TelegramBot = require('node-telegram-bot-api');
 
-const User = require('./User');
+const User = require('./models/User');
 
 let bot;
 if (process.env.NODE_ENV === 'development') {

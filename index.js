@@ -2,7 +2,7 @@ const dotenv = require('dotenv');
 const mongoose = require('mongoose');
 const express = require('express');
 
-const User = require('./User');
+const User = require('./models/User');
 
 const app = express();
 app.use(express.json());
