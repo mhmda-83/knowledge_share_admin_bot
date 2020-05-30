@@ -10,16 +10,12 @@ const userSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
-  numberOfLearnedThings: {
-    type: Number,
-    default: 0,
-  },
-  numberOfTaughtThings: {
-    type: Number,
-    default: 0,
-  },
   lastActivityDate: {
     type: Date,
+  },
+  isActive: {
+    type: Boolean,
+    default: true,
   },
 });
 
