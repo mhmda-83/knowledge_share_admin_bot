@@ -68,7 +68,7 @@ bot.onText(/\/stat/, async (message) => {
   }
 });
 
-bot.onText(/^\+|⁺$/, async (message) => {
+bot.onText(/^\+|⁺|＋|﹢$/, async (message) => {
   if (
     message.chat.type !== 'supergroup' ||
     message.chat.id != process.env.GROUP_ID ||
