@@ -100,11 +100,29 @@ bot.onText(/^\+|⁺$/, async (message) => {
   );
 });
 
+const addAdminToDB = async (adminID, messageDate) => {
+  const updatedUser = await User.findOneAndUpdate(
+    {
+      id: adminID,
+    },
+    {
+      isActive: true,
+      lastActivityDate: Date(messageDate),
+    }
+  );
+  if (!updatedUser)
+    await User.create({
+      id: adminID,
+      lastActivityDate: Date(messageDate),
+    });
+};
+
 bot.on('new_chat_members', (message) => {
   const newMembers = message.new_chat_members;
-
   bot.deleteMessage(message.chat.id, message.message_id);
   newMembers.forEach(async (user) => {
+    if (user.is_bot && user.id == process.env.BOT_ID)
+      addAdminToDB(process.env.ADMIN_USER_ID, message.date);
     if (user.is_bot) return;
     const updatedUser = await User.findOneAndUpdate(
       {
@@ -130,6 +148,7 @@ bot.on('new_chat_members', (message) => {
 
 bot.on('left_chat_member', async (message) => {
   const deletedUser = message.left_chat_member;
+  if (deletedUser.is_bot) return;
   await User.findOneAndUpdate({ id: deletedUser.id }, { isActive: false });
   bot.deleteMessage(message.chat.id, message.message_id);
   bot.sendMessage(
