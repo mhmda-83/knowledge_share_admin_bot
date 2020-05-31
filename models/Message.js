@@ -13,6 +13,10 @@ const messageSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
+  learnDate: {
+    type: Date,
+    required: true,
+  },
 });
 
 module.exports = mongoose.model('Message', messageSchema);
