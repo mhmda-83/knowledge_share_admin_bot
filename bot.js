@@ -53,7 +53,7 @@ const getStatistics = async (message) => {
     .add({ hours: 3, minutes: 30 })
     .format('jYYYY/jMM/jDD HH:mm:ss');
   const joinJalaliDate = moment
-    .utc(user.lastActivityDate)
+    .utc(user.joinDate)
     .add({ hours: 3, minutes: 30 })
     .format('jYYYY/jMM/jDD HH:mm:ss');
 
