@@ -144,8 +144,10 @@ const onNewMembersJoined = (message) => {
   bot.deleteMessage(message.chat.id, message.message_id);
 
   newMembers.forEach(async (user) => {
-    if (user.is_bot && user.id == process.env.BOT_ID)
+    if (user.is_bot && user.id == process.env.BOT_ID) {
+      console.log(`GROUP ID: ${message.chat.id}`);
       addUserToDB(process.env.ADMIN_USER_ID, message.date);
+    }
     if (user.is_bot) return;
     addUserToDB(user.id, message.date, user.first_name);
   });
