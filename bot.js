@@ -1,6 +1,5 @@
 const TelegramBot = require('node-telegram-bot-api');
 const JDate = require('jalali-date');
-
 const User = require('./models/User');
 const Message = require('./models/Message');
 
@@ -16,11 +15,11 @@ if (process.env.NODE_ENV === 'production') {
   bot.setWebHook(url);
 }
 
-const allowedMessageType = ['text', 'photo', 'video', 'voice', 'poll'];
+const ALLOWED_MESSAGE_TYPE = ['text', 'photo', 'video', 'voice', 'poll'];
 
-bot.on('message', async (message, metadata) => {
+const onMessage = async (message, metadata) => {
   if (
-    allowedMessageType.includes(metadata.type) &&
+    ALLOWED_MESSAGE_TYPE.includes(metadata.type) &&
     message.chat.type === 'supergroup' &&
     message.chat.id == process.env.GROUP_ID
   ) {
@@ -29,54 +28,61 @@ bot.on('message', async (message, metadata) => {
       { lastActivityDate: Date(message.date) }
     );
   }
-});
+};
 
-bot.onText(/\/start/, (message) => {
+const onStart = async (message) => {
   if (message.chat.type === 'private')
-    bot.sendMessage(message.chat.id, 'خوش اومدی :)', {
+    await bot.sendMessage(message.chat.id, 'خوش اومدی :)', {
       reply_to_message_id: message.message_id,
     });
-});
+};
 
-bot.onText(/\/stat/, async (message) => {
-  if (message.chat.type === 'private') {
-    const user = await User.findOne({ id: message.from.id });
-    if (user === null)
-      return bot.sendMessage(
-        message.chat.id,
-        'اطلاعاتی از شما در دیتابیس وجود ندارد',
-        { reply_to_message_id: message.message_id }
-      );
-    const lastActivityJalaliDate = new JDate(user.lastActivityDate);
-    const numberOfLearnedThings = await Message.countDocuments({
-      learnerId: message.from.id,
-    });
-    const numberOfTaughtThings = await Message.countDocuments({
-      senderId: message.from.id,
-    });
-    bot.sendMessage(
+const getStatistics = async (message) => {
+  if (message.chat.type != 'private') return;
+
+  const user = await User.findOne({ id: message.from.id });
+  if (user === null)
+    return bot.sendMessage(
       message.chat.id,
-      `
+      'اطلاعاتی از شما در دیتابیس وجود ندارد',
+      { reply_to_message_id: message.message_id }
+    );
+
+  const lastActivityJalaliDate = new JDate(user.lastActivityDate);
+  const joinJalaliDate = new JDate(user.joinDate);
+
+  const numberOfLearnedThings = await Message.countDocuments({
+    learnerId: message.from.id,
+  });
+  const numberOfTaughtThings = await Message.countDocuments({
+    senderId: message.from.id,
+  });
+
+  bot.sendMessage(
+    message.chat.id,
+    `
     تعداد چیزایی که یاد گرفتید: ${numberOfLearnedThings} 👌
 تعداد دفعاتی که بقیه از پیام های شما چیزی رو یاد گرفتن: ${numberOfTaughtThings} 😊
 تاریخ و ساعت آخرین فعالیتی که ثبت شده: ${lastActivityJalaliDate.format(
-        'YYYY/MM/DD '
-      )} ${user.lastActivityDate.getHours()}:${user.lastActivityDate.getMinutes()}:${user.lastActivityDate.getSeconds()} ✌
+      'YYYY/MM/DD '
+    )} ${user.lastActivityDate.getHours()}:${user.lastActivityDate.getMinutes()}:${user.lastActivityDate.getSeconds()} ✌
+تاریخ عضویت: ${joinJalaliDate.format(
+      'YYYY/MM/DD '
+    )} ${user.joinDate.getHours()}:${user.joinDate.getMinutes()}:${user.joinDate.getSeconds()} 😘
+وضعیت در گروه: ${user.isActive ? 'فعال' : 'غیرفعال'}
     `,
-      { reply_to_message_id: message.message_id }
-    );
-  }
-});
+    { reply_to_message_id: message.message_id }
+  );
+};
 
-bot.onText(/^\+|⁺|＋|﹢$/, async (message) => {
+const onLearnedNewThing = async (message) => {
   if (
     message.chat.type !== 'supergroup' ||
     message.chat.id != process.env.GROUP_ID ||
     !message.reply_to_message ||
     message.reply_to_message.from.id == message.from.id
-  ) {
+  )
     return bot.deleteMessage(message.chat.id, message.message_id);
-  }
   const learnedMessage = await Message.findOne({
     learnerId: message.from.id,
     senderId: message.reply_to_message.from.id,
@@ -88,6 +94,7 @@ bot.onText(/^\+|⁺|＋|﹢$/, async (message) => {
     id: message.message_id,
     senderId: message.reply_to_message.from.id,
     learnerId: message.from.id,
+    learnDate: message.date,
   });
 
   await User.findOneAndUpdate(
@@ -98,57 +105,56 @@ bot.onText(/^\+|⁺|＋|﹢$/, async (message) => {
     { id: message.reply_to_message.from.id },
     { $inc: { numberOfTaughtThings: 1 } }
   );
-});
+};
 
-const addAdminToDB = async (adminID, messageDate) => {
+const addUserToDB = async (userId, messageDate, userFirstName = 'ادمین') => {
   const updatedUser = await User.findOneAndUpdate(
     {
-      id: adminID,
+      id: userId,
     },
     {
       isActive: true,
       lastActivityDate: Date(messageDate),
     }
   );
-  if (!updatedUser)
+  if (!updatedUser) {
     await User.create({
-      id: adminID,
+      id: userId,
       lastActivityDate: Date(messageDate),
     });
-};
-
-bot.on('new_chat_members', (message) => {
-  const newMembers = message.new_chat_members;
-  bot.deleteMessage(message.chat.id, message.message_id);
-  newMembers.forEach(async (user) => {
-    if (user.is_bot && user.id == process.env.BOT_ID)
-      addAdminToDB(process.env.ADMIN_USER_ID, message.date);
-    if (user.is_bot) return;
-    const updatedUser = await User.findOneAndUpdate(
-      {
-        id: user.id,
-      },
-      {
-        isActive: true,
-        lastActivityDate: Date(message.date),
-      }
-    );
-    if (!updatedUser)
-      await User.create({ id: user.id, lastActivityDate: Date(message.date) });
-
-    bot.sendMessage(
+    return bot.sendMessage(
       process.env.ADMIN_USER_ID,
-      `وضعیت کاربر <a href="tg://user?id=${user.id}">${user.first_name}</a> به فعال تغییر پیدا کرد`,
+      `کاربر <a href="tg://user?id=${userId}">${userFirstName}</a> به دیتابیس اضافه شد`,
       {
         parse_mode: 'HTML',
       }
     );
-  });
-});
+  }
+  bot.sendMessage(
+    process.env.ADMIN_USER_ID,
+    `وضعیت کاربر <a href="tg://user?id=${userId}">${userFirstName}</a> به فعال تغییر پیدا کرد`,
+    {
+      parse_mode: 'HTML',
+    }
+  );
+};
 
-bot.on('left_chat_member', async (message) => {
+const onNewMembersJoined = (message) => {
+  const newMembers = message.new_chat_members;
+  bot.deleteMessage(message.chat.id, message.message_id);
+
+  newMembers.forEach(async (user) => {
+    if (user.is_bot && user.id == process.env.BOT_ID)
+      addUserToDB(process.env.ADMIN_USER_ID, message.date);
+    if (user.is_bot) return;
+    addUserToDB(user.id, message.date, user.first_name);
+  });
+};
+
+const onMemberLeft = async (message) => {
   const deletedUser = message.left_chat_member;
   if (deletedUser.is_bot) return;
+
   await User.findOneAndUpdate({ id: deletedUser.id }, { isActive: false });
   bot.deleteMessage(message.chat.id, message.message_id);
   bot.sendMessage(
@@ -158,6 +164,13 @@ bot.on('left_chat_member', async (message) => {
       parse_mode: 'HTML',
     }
   );
-});
+};
+
+bot.on('message', onMessage);
+bot.onText(/\/start/, onStart);
+bot.onText(/\/stat/, getStatistics);
+bot.onText(/^\+|⁺|＋|﹢$/, onLearnedNewThing);
+bot.on('new_chat_members', onNewMembersJoined);
+bot.on('left_chat_member', onMemberLeft);
 
 module.exports = bot;
