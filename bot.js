@@ -50,11 +50,11 @@ const getStatistics = async (message) => {
 
   const lastActivityJalaliDate = moment
     .utc(user.lastActivityDate)
-    .add({ hours: 3, minutes: 30 })
+    .add({ hours: 4, minutes: 30 })
     .format('jYYYY/jMM/jDD HH:mm:ss');
   const joinJalaliDate = moment
     .utc(user.joinDate)
-    .add({ hours: 3, minutes: 30 })
+    .add({ hours: 4, minutes: 30 })
     .format('jYYYY/jMM/jDD HH:mm:ss');
 
   const numberOfLearnedThings = await Message.countDocuments({
