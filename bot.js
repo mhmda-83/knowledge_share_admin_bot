@@ -1,5 +1,5 @@
 const TelegramBot = require('node-telegram-bot-api');
-const JDate = require('jalali-date');
+const moment = require('moment-jalaali');
 const User = require('./models/User');
 const Message = require('./models/Message');
 
@@ -48,8 +48,14 @@ const getStatistics = async (message) => {
       { reply_to_message_id: message.message_id }
     );
 
-  const lastActivityJalaliDate = new JDate(user.lastActivityDate);
-  const joinJalaliDate = new JDate(user.joinDate);
+  const lastActivityJalaliDate = moment
+    .utc(user.lastActivityDate)
+    .add({ hours: 3, minutes: 30 })
+    .format('jYYYY/jMM/jDD HH:mm:ss');
+  const joinJalaliDate = moment
+    .utc(user.lastActivityDate)
+    .add({ hours: 3, minutes: 30 })
+    .format('jYYYY/jMM/jDD HH:mm:ss');
 
   const numberOfLearnedThings = await Message.countDocuments({
     learnerId: message.from.id,
@@ -63,12 +69,8 @@ const getStatistics = async (message) => {
     `
     تعداد چیزایی که یاد گرفتید: ${numberOfLearnedThings} 👌
 تعداد دفعاتی که بقیه از پیام های شما چیزی رو یاد گرفتن: ${numberOfTaughtThings} 😊
-تاریخ و ساعت آخرین فعالیتی که ثبت شده: ${lastActivityJalaliDate.format(
-      'YYYY/MM/DD '
-    )} ${user.lastActivityDate.getHours()}:${user.lastActivityDate.getMinutes()}:${user.lastActivityDate.getSeconds()} ✌
-تاریخ عضویت: ${joinJalaliDate.format(
-      'YYYY/MM/DD '
-    )} ${user.joinDate.getHours()}:${user.joinDate.getMinutes()}:${user.joinDate.getSeconds()} 😘
+تاریخ و ساعت آخرین فعالیتی که ثبت شده: ${lastActivityJalaliDate} ✌
+تاریخ عضویت: ${joinJalaliDate} 😘
 وضعیت در گروه: ${user.isActive ? 'فعال' : 'غیرفعال'}
     `,
     { reply_to_message_id: message.message_id }
