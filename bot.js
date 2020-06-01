@@ -37,6 +37,20 @@ const onStart = async (message) => {
     });
 };
 
+const getUserIds = async (message) => {
+  if (
+    message.from.id != process.env.ADMIN_USER_ID ||
+    message.chat.type !== 'private'
+  )
+    return;
+  const users = await User.find();
+  let usersListMessage = '';
+  users.forEach((user) => {
+    usersListMessage = `${usersListMessage}\n<a href="tg://user?id=${user.id}">${user.id}</a>`;
+  });
+  bot.sendMessage(message.chat.id, usersListMessage, { parse_mode: 'HTML' });
+};
+
 const getStatistics = async (message) => {
   if (message.chat.type != 'private') return;
 
@@ -172,6 +186,7 @@ const onMemberLeft = async (message) => {
 
 bot.on('message', onMessage);
 bot.onText(/^\/start$/, onStart);
+bot.onText(/^\/getUserIds$/, getUserIds);
 bot.onText(/\/stat (.+)/, (message, match) => {
   if (message.from.id == process.env.ADMIN_USER_ID) {
     message.from.id = match[1];
