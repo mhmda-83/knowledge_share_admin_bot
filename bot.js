@@ -171,8 +171,14 @@ const onMemberLeft = async (message) => {
 };
 
 bot.on('message', onMessage);
-bot.onText(/\/start/, onStart);
-bot.onText(/\/stat/, getStatistics);
+bot.onText(/^\/start$/, onStart);
+bot.onText(/\/stat (.+)/, (message, match) => {
+  if (message.from.id == process.env.ADMIN_USER_ID) {
+    message.from.id = match[1];
+    getStatistics(message);
+  }
+});
+bot.onText(/^\/stat$/, getStatistics);
 bot.onText(/^\+|⁺|＋|﹢$/, onLearnedNewThing);
 bot.on('new_chat_members', onNewMembersJoined);
 bot.on('left_chat_member', onMemberLeft);
