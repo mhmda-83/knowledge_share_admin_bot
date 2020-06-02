@@ -15,19 +15,11 @@ if (process.env.NODE_ENV === 'production') {
   bot.setWebHook(url);
 }
 
-const ALLOWED_MESSAGE_TYPE = ['text', 'photo', 'video', 'voice', 'poll'];
-
-const onMessage = async (message, metadata) => {
-  if (
-    ALLOWED_MESSAGE_TYPE.includes(metadata.type) &&
-    message.chat.type === 'supergroup' &&
-    message.chat.id == process.env.GROUP_ID
-  ) {
-    await User.findOneAndUpdate(
-      { id: message.from.id },
-      { lastActivityDate: Date(message.date) }
-    );
-  }
+const updateUserLastActivityDate = async (message) => {
+  await User.findOneAndUpdate(
+    { id: message.from.id },
+    { lastActivityDate: Date(message.date) }
+  );
 };
 
 const onStart = async (message) => {
@@ -184,7 +176,11 @@ const onMemberLeft = async (message) => {
   );
 };
 
-bot.on('message', onMessage);
+bot.on('text', updateUserLastActivityDate);
+bot.on('photo', updateUserLastActivityDate);
+bot.on('video', updateUserLastActivityDate);
+bot.on('voice', updateUserLastActivityDate);
+bot.on('poll', updateUserLastActivityDate);
 bot.onText(/^\/start$/, onStart);
 bot.onText(/^\/getUserIds$/, getUserIds);
 bot.onText(/\/stat (.+)/, (message, match) => {
