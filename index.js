@@ -3,8 +3,12 @@ const mongoose = require('mongoose');
 
 dotenv.config();
 
+const mongoConnectionString =
+  process.env.NODE_ENV == 'development'
+    ? process.env.MONGO_DEVELOPMENT_CONNECTION_STRING
+    : process.env.MONGO_PRODUCTION_CONNECTION_STRING;
 mongoose
-  .connect(process.env.MONGO_CONNECTION_STRING, {
+  .connect(mongoConnectionString, {
     useCreateIndex: true,
     useNewUrlParser: true,
     useFindAndModify: false,
