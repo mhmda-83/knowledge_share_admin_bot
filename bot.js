@@ -101,6 +101,24 @@ const getBestStudent = async (message) => {
   );
 };
 
+const getBestTeacher = async (message) => {
+  if (
+    message.chat.type !== 'private' ||
+    message.from.id != process.env.ADMIN_USER_ID
+  )
+    return;
+  let teachers = await Message.aggregate([{ $sortByCount: '$senderId' }]);
+  const bestTeacher = teachers[0];
+  bot.sendMessage(
+    message.chat.id,
+    `
+  بهترین یاددهنده: <a href="tg://user?id=${bestTeacher._id}">${bestTeacher._id}</a> ✌
+  تعداد چیزهای یادداده شده: ${bestTeacher.count} 😉
+`,
+    { parse_mode: 'HTML' }
+  );
+};
+
 const onLearnedNewThing = async (message) => {
   if (
     message.chat.type !== 'supergroup' ||
@@ -209,6 +227,7 @@ bot.onText(/\/stat (.+)/, (message, match) => {
   }
 });
 bot.onText(/^\/bestStudent$/, getBestStudent);
+bot.onText(/^\/bestTeacher$/, getBestTeacher);
 bot.onText(/^\/stat$/, getStatistics);
 bot.onText(/^\+|⁺|＋|﹢$/, onLearnedNewThing);
 bot.on('new_chat_members', onNewMembersJoined);
