@@ -83,6 +83,24 @@ const getStatistics = async (message) => {
   );
 };
 
+const getBestStudent = async (message) => {
+  if (
+    message.chat.type !== 'private' ||
+    message.from.id != process.env.ADMIN_USER_ID
+  )
+    return;
+  let students = await Message.aggregate([{ $sortByCount: '$learnerId' }]);
+  const bestStudent = students[0];
+  bot.sendMessage(
+    message.chat.id,
+    `
+  بهترین یادگیرنده: <a href="tg://user?id=${bestStudent._id}">${bestStudent._id}</a> ✌
+  تعداد چیزهای یادگرفته شده: ${bestStudent.count} 😉
+`,
+    { parse_mode: 'HTML' }
+  );
+};
+
 const onLearnedNewThing = async (message) => {
   if (
     message.chat.type !== 'supergroup' ||
@@ -94,6 +112,7 @@ const onLearnedNewThing = async (message) => {
   const learnedMessage = await Message.findOne({
     learnerId: message.from.id,
     senderId: message.reply_to_message.from.id,
+    id: message.reply_to_message.message_id,
   });
   if (learnedMessage)
     return bot.deleteMessage(message.chat.id, message.message_id);
@@ -189,6 +208,7 @@ bot.onText(/\/stat (.+)/, (message, match) => {
     getStatistics(message);
   }
 });
+bot.onText(/^\/bestStudent$/, getBestStudent);
 bot.onText(/^\/stat$/, getStatistics);
 bot.onText(/^\+|⁺|＋|﹢$/, onLearnedNewThing);
 bot.on('new_chat_members', onNewMembersJoined);
