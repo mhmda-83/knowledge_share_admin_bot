@@ -62,6 +62,7 @@ const getUsers = async (message) => {
   });
   bot.sendMessage(message.chat.id, usersListMessage, {
     parse_mode: 'HTML',
+    reply_to_message_id: message.message_id,
   });
 };
 
@@ -137,6 +138,7 @@ const getBestStudent = async (message) => {
 `,
     {
       parse_mode: 'HTML',
+      reply_to_message_id: message.message_id,
     }
   );
 };
@@ -156,6 +158,7 @@ const getBestTeacher = async (message) => {
 `,
     {
       parse_mode: 'HTML',
+      reply_to_message_id: message.message_id,
     }
   );
 };
@@ -200,7 +203,10 @@ const getLearnfulDate = async (message) => {
       messagesSortedByCountOfLearnDate[0]._id.day
     )
   );
-  bot.sendMessage(message.chat.id, learnFulDate.format('jYYYY/jMM/jDD'));
+
+  bot.sendMessage(message.chat.id, learnFulDate.format('jYYYY/jMM/jDD'), {
+    reply_to_message_id: message.message_id,
+  });
 };
 
 const onLearnedNewThing = async (message) => {
