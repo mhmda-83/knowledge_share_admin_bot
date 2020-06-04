@@ -38,7 +38,7 @@ const onStart = async (message) => {
     });
 };
 
-const getUserIds = async (message) => {
+const getUsers = async (message) => {
   if (
     message.from.id != process.env.ADMIN_USER_ID ||
     message.chat.type !== 'private'
@@ -322,7 +322,7 @@ bot.on('video', updateUserLastActivityDate);
 bot.on('voice', updateUserLastActivityDate);
 bot.on('poll', updateUserLastActivityDate);
 bot.onText(/^\/start$/, onStart);
-bot.onText(/^\/getUsers$/, getUserIds);
+bot.onText(/^\/getUsers$/, getUsers);
 bot.onText(/\/stat (.+)/, (message, match) => {
   if (message.from.id == process.env.ADMIN_USER_ID) {
     message.from.id = match[1];
