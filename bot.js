@@ -16,6 +16,11 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 const updateUserLastActivityDate = async (message) => {
+  if (
+    message.chat.type !== 'supergroup' ||
+    message.chat.id != process.env.GROUP_ID
+  )
+    return;
   await User.findOneAndUpdate(
     {
       id: message.from.id,
