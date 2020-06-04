@@ -47,7 +47,18 @@ const getUserIds = async (message) => {
   const users = await User.find();
   let usersListMessage = '';
   users.forEach((user) => {
-    usersListMessage = `${usersListMessage}\n<a href="tg://user?id=${user.id}">${user.id}</a>`;
+    usersListMessage = `${usersListMessage}
+
+شناسه: <a href="tg://user?id=${user.id}">${user.id}</a>
+وضعیت فعالیت: ${user.isActive ? 'فعال' : 'غیرفعال'}
+تاریخ عضویت اولیه: ${moment
+      .utc(user.joinDate)
+      .add({ hours: 4, minutes: 30 })
+      .format('jYYYY/jMM/jDD H:m:s')}
+تاریخ آخرین فعالیت: ${moment
+      .utc(user.lastActivityDate)
+      .add({ hours: 4, minutes: 30 })
+      .format('jYYYY/jMM/jDD H:m:s')}`;
   });
   bot.sendMessage(message.chat.id, usersListMessage, {
     parse_mode: 'HTML',
@@ -311,7 +322,7 @@ bot.on('video', updateUserLastActivityDate);
 bot.on('voice', updateUserLastActivityDate);
 bot.on('poll', updateUserLastActivityDate);
 bot.onText(/^\/start$/, onStart);
-bot.onText(/^\/getUserIds$/, getUserIds);
+bot.onText(/^\/getUsers$/, getUserIds);
 bot.onText(/\/stat (.+)/, (message, match) => {
   if (message.from.id == process.env.ADMIN_USER_ID) {
     message.from.id = match[1];
