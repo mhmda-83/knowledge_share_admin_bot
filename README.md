@@ -28,3 +28,8 @@
 `‍/bestStudent`: دریافت کاربری که بیشترین یادگیری را در گروه داشته
 
 `/bestTeacher`: دریافت کاربری که روی پیام هایش بیشتر از همه + ریپلای شده است
+
+<div dir="rtl">
+
+[لینک گروه](https://t.me/joinchat/QdBZulZQNZipvEIu0crEaQ)
+</div>
