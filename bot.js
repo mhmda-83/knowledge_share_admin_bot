@@ -231,27 +231,6 @@ const onLearnedNewThing = async (message) => {
     learnerId: message.from.id,
     learnDate: Date(message.date),
   });
-
-  await User.findOneAndUpdate(
-    {
-      id: message.from.id,
-    },
-    {
-      $inc: {
-        numberOfLearnedThings: 1,
-      },
-    }
-  );
-  await User.findOneAndUpdate(
-    {
-      id: message.reply_to_message.from.id,
-    },
-    {
-      $inc: {
-        numberOfTaughtThings: 1,
-      },
-    }
-  );
 };
 
 const addUserToDB = async (userId, messageDate, userFirstName = 'ادمین') => {
