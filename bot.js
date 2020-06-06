@@ -33,7 +33,12 @@ const updateUserLastActivityDate = async (message) => {
 
 const onStart = async (message) => {
   if (message.chat.type === 'private')
-    await bot.sendMessage(message.chat.id, 'خوش اومدی :)', {
+    bot.sendMessage(message.chat.id, 'خوش اومدی :)', {
+      reply_markup: JSON.stringify({
+        keyboard: [['آمار فعالیت']],
+        resize_keyboard: true,
+        one_time_keyboard: true,
+      }),
       reply_to_message_id: message.message_id,
     });
 };
@@ -318,6 +323,7 @@ bot.onText(/^\/bestStudent$/, getBestStudent);
 bot.onText(/^\/bestTeacher$/, getBestTeacher);
 bot.onText(/^\/learnfulDate$/, getLearnfulDate);
 bot.onText(/^\/stat$/, getStatistics);
+bot.onText(/^آمار فعالیت$/, getStatistics);
 bot.onText(/^\+|⁺|＋|﹢$/, onLearnedNewThing);
 bot.on('new_chat_members', onNewMembersJoined);
 bot.on('left_chat_member', onMemberLeft);
