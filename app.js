@@ -24,7 +24,7 @@ app.get('/removeInactiveUsers', async (req, res) => {
   const users = await User.find({
     isActive: true,
     lastActivityDate: {
-      $lte: moment().utc().subtract(1, 'day').toDate(),
+      $lte: moment().utc().subtract(3, 'days').toDate(),
     },
   });
 
