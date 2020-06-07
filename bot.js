@@ -327,9 +327,9 @@ bot.onText(/^آمار فعالیت$/, getStatistics);
 bot.onText(/^\+|⁺|＋|﹢$/, onLearnedNewThing);
 bot.on('new_chat_members', onNewMembersJoined);
 bot.on('left_chat_member', onMemberLeft);
-bot.on('message', (message) => {
+bot.on('message', async (message) => {
   if (message.chat.type !== 'private') return;
-  bot.sendMessage(
+  await bot.sendMessage(
     process.env.LOG_CHANNEL_ID,
     `پیام جدید از <a href="tg://user?id=${message.from.id}">${message.from.first_name}</a> گرفتم ✌`,
     { parse_mode: 'HTML' }
