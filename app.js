@@ -4,6 +4,7 @@ const moment = require('moment-jalaali');
 const User = require('./models/User');
 const Message = require('./models/Message');
 const bot = require('./bot');
+const { json } = require('express');
 
 const app = express();
 
@@ -74,6 +75,67 @@ app.get('/sendMostUsefulPost', async (req, res) => {
   );
 
   res.json({ status: 'success', data: forwardedMessage });
+});
+
+app.get('/sendBestOfWeeks', async (req, res) => {
+  if (req.query.security_code != process.env.SECURITY_CODE) {
+    return res.json({
+      status: 'fail',
+      message: 'کد امنیتی اشتباه است',
+    });
+  }
+
+  const students = await Message.aggregate([
+    {
+      $match: {
+        learnDate: { $gte: moment().utc().subtract('7', 'days').toDate() },
+      },
+    },
+    {
+      $sortByCount: '$learnerId',
+    },
+  ]);
+  const teachers = await Message.aggregate([
+    {
+      $match: {
+        learnDate: { $gte: moment().utc().subtract('7', 'days').toDate() },
+      },
+    },
+    {
+      $sortByCount: '$senderId',
+    },
+  ]);
+
+  const bestStudent = students[0];
+  const bestTeacher = teachers[0];
+
+  const bestStudentUser = await bot.getChatMember(
+    process.env.GROUP_ID,
+    bestStudent._id
+  );
+
+  const bestTeacherUser = await bot.getChatMember(
+    process.env.GROUP_ID,
+    bestTeacher._id
+  );
+  if (!bestStudent || !bestTeacher)
+    return res.json({ status: 'success', message: 'فعالیتی انجام نشده است' });
+
+  const sentMessage = await bot.sendMessage(
+    process.env.GROUP_ID,
+    `
+    برترین ها 😎🤞
+
+  برترین یادگیرنده هفته با تعداد ${bestStudent.count} یادگیری ✌✌ : <a href="tg://user?id=${bestStudentUser.user.id}">${bestStudentUser.user.first_name}</a>
+  برترین یاددهنده هفته با تعداد ${bestTeacher.count} آموزش ✌✌ : <a href="tg://user?id=${bestTeacherUser.user.id}">${bestTeacherUser.user.first_name}</a>
+  `,
+    { parse_mode: 'HTML' }
+  );
+
+  res.json({
+    status: 'success',
+    data: sentMessage,
+  });
 });
 
 module.exports = app;
