@@ -231,7 +231,7 @@ const onLearnedNewThing = async (message) => {
     return bot.deleteMessage(message.chat.id, message.message_id);
 
   await Message.create({
-    id: message.message_id,
+    id: message.reply_to_message.message_id,
     senderId: message.reply_to_message.from.id,
     learnerId: message.from.id,
     learnDate: Date(message.date),

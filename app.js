@@ -4,7 +4,6 @@ const moment = require('moment-jalaali');
 const User = require('./models/User');
 const Message = require('./models/Message');
 const bot = require('./bot');
-const { json } = require('express');
 
 const app = express();
 
