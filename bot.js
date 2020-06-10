@@ -350,6 +350,9 @@ bot.on('message', async (message, metadata) => {
   if (metadata.type === 'new_chat_members') onNewMembersJoined(message);
   else if (metadata.type === 'left_chat_member') onMemberLeft(message);
 
+  let learnedNewThing = /^\+|⁺|＋|﹢$/.exec(message.text);
+  if (learnedNewThing) onLearnedNewThing(message);
+
   if (message.chat.type != 'private') return;
 
   if (metadata.type !== 'text') return undefinedAction(message);
@@ -362,7 +365,6 @@ bot.on('message', async (message, metadata) => {
   let learnfulDateCommand = /^\/learnfulDate$/.exec(message.text);
   let statCommand = /^\/stat$/.exec(message.text);
   let statKeyboard = /^آمار فعالیت$/.exec(message.text);
-  let learnedNewThing = /^\+|⁺|＋|﹢$/.exec(message.text);
 
   if (startCommand) onStart(message);
   else if (getUsersCommand) getUsers(message);
@@ -377,7 +379,6 @@ bot.on('message', async (message, metadata) => {
   else if (learnfulDateCommand) getLearnfulDate(message);
   else if (statCommand) getStatistics(message);
   else if (statKeyboard) getStatistics(message);
-  else if (learnedNewThing) onLearnedNewThing(message);
   else undefinedAction(message);
 });
 
