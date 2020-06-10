@@ -306,39 +306,79 @@ const onMemberLeft = async (message) => {
   );
 };
 
-bot.on('text', updateUserLastActivityDate);
-bot.on('photo', updateUserLastActivityDate);
-bot.on('video', updateUserLastActivityDate);
-bot.on('voice', updateUserLastActivityDate);
-bot.on('poll', updateUserLastActivityDate);
-bot.onText(/^\/start$/, onStart);
-bot.onText(/^\/getUsers$/, getUsers);
-bot.onText(/\/stat (.+)/, (message, match) => {
-  if (message.from.id == process.env.ADMIN_USER_ID) {
-    message.from.id = match[1];
-    getStatistics(message);
+const undefinedAction = (message) => {
+  if (message.chat.type === 'private')
+    bot.sendMessage(message.chat.id, 'نفهمیدم چی گفتی!', {
+      reply_markup: JSON.stringify({
+        keyboard: [['آمار فعالیت']],
+        resize_keyboard: true,
+        one_time_keyboard: true,
+      }),
+      reply_to_message_id: message.message_id,
+    });
+};
+
+const ALLOWED_MESSAGE_TYPE_FOR_UPDATING_LAST_ACTIVITY = [
+  'text',
+  'photo',
+  'video',
+  'voice',
+  'poll',
+];
+
+bot.on('message', async (message, metadata) => {
+  // send user message to log channel
+  if (
+    process.env.NODE_ENV === 'production' &&
+    message.chat.type === 'private'
+  ) {
+    await bot.sendMessage(
+      process.env.LOG_CHANNEL_ID,
+      `پیام جدید از <a href="tg://user?id=${message.from.id}">${message.from.first_name}</a> گرفتم ✌`,
+      { parse_mode: 'HTML' }
+    );
+    bot.forwardMessage(
+      process.env.LOG_CHANNEL_ID,
+      message.chat.id,
+      message.message_id
+    );
   }
-});
-bot.onText(/^\/bestStudent$/, getBestStudent);
-bot.onText(/^\/bestTeacher$/, getBestTeacher);
-bot.onText(/^\/learnfulDate$/, getLearnfulDate);
-bot.onText(/^\/stat$/, getStatistics);
-bot.onText(/^آمار فعالیت$/, getStatistics);
-bot.onText(/^\+|⁺|＋|﹢$/, onLearnedNewThing);
-bot.on('new_chat_members', onNewMembersJoined);
-bot.on('left_chat_member', onMemberLeft);
-bot.on('message', async (message) => {
-  if (message.chat.type !== 'private') return;
-  await bot.sendMessage(
-    process.env.LOG_CHANNEL_ID,
-    `پیام جدید از <a href="tg://user?id=${message.from.id}">${message.from.first_name}</a> گرفتم ✌`,
-    { parse_mode: 'HTML' }
-  );
-  bot.forwardMessage(
-    process.env.LOG_CHANNEL_ID,
-    message.chat.id,
-    message.message_id
-  );
+
+  if (ALLOWED_MESSAGE_TYPE_FOR_UPDATING_LAST_ACTIVITY.includes(metadata.type))
+    updateUserLastActivityDate(message);
+
+  if (metadata.type === 'new_chat_members') onNewMembersJoined(message);
+  else if (metadata.type === 'left_chat_member') onMemberLeft(message);
+
+  if (message.chat.type != 'private') return;
+
+  if (metadata.type !== 'text') return undefinedAction(message);
+
+  let startCommand = /^\/start$/.exec(message.text);
+  let getUsersCommand = /^\/getUsers$/.exec(message.text);
+  let specificUserStatCommand = /^\/stat (.+)$/.exec(message.text);
+  let bestStudentCommand = /^\/bestStudent$/.exec(message.text);
+  let bestTeacherCommand = /^\/bestTeacher$/.exec(message.text);
+  let learnfulDateCommand = /^\/learnfulDate$/.exec(message.text);
+  let statCommand = /^\/stat$/.exec(message.text);
+  let statKeyboard = /^آمار فعالیت$/.exec(message.text);
+  let learnedNewThing = /^\+|⁺|＋|﹢$/.exec(message.text);
+
+  if (startCommand) onStart(message);
+  else if (getUsersCommand) getUsers(message);
+  else if (
+    specificUserStatCommand &&
+    message.from.id == process.env.ADMIN_USER_ID
+  ) {
+    message.from.id = specificUserStatCommand[1];
+    return getStatistics(message);
+  } else if (bestStudentCommand) getBestStudent(message);
+  else if (bestTeacherCommand) getBestTeacher(message);
+  else if (learnfulDateCommand) getLearnfulDate(message);
+  else if (statCommand) getStatistics(message);
+  else if (statKeyboard) getStatistics(message);
+  else if (learnedNewThing) onLearnedNewThing(message);
+  else undefinedAction(message);
 });
 
 module.exports = bot;

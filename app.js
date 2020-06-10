@@ -31,7 +31,6 @@ app.get('/removeInactiveUsers', async (req, res) => {
 
   users.forEach(async (user) => {
     await bot.kickChatMember(process.env.GROUP_ID, user.id);
-    await user.updateOne({ isActive: false });
     await bot.sendMessage(
       process.env.ADMIN_USER_ID,
       `<a href="tg://user?id=${user.id}">کاربر</a> به دلیل عدم فعالیت ریمو شد`,
