@@ -35,7 +35,7 @@ const onStart = async (message) => {
   if (message.chat.type === 'private')
     bot.sendMessage(message.chat.id, 'خوش اومدی :)', {
       reply_markup: JSON.stringify({
-        keyboard: [['آمار فعالیت']],
+        keyboard: [['آمار فعالیت'], ['چیا یادگرفتم؟']],
         resize_keyboard: true,
         one_time_keyboard: true,
       }),
@@ -214,6 +214,94 @@ const getLearnfulDate = async (message) => {
   });
 };
 
+const getThingsILearned = async (message, page = 1, messageId = null) => {
+  message.from.id = messageId === null ? message.from.id : message.chat.id;
+  const messages = await Message.find({
+    learnerId: message.from.id,
+  })
+    .sort({ learnDate: -1 })
+    .skip((page - 1) * 5)
+    .limit(5);
+  if (messages.length === 0 && messageId === null)
+    return bot.sendMessage(message.chat.id, 'چیزی نیست😢', {
+      reply_to_message_id: message.message_id,
+    });
+  if (messages.length === 0 && messageId !== null)
+    return bot.editMessageText('چیزی نیست 😢', {
+      chat_id: message.chat.id,
+      message_id: messageId,
+      reply_markup: {
+        inline_keyboard: [
+          [
+            {
+              text: '◀️جدید ترها',
+              callback_data: `page:${page - 1}-messageId:${message.message_id}`,
+            },
+          ],
+        ],
+      },
+    });
+
+  const keyboard = [];
+  messages.forEach((learnedMessage, index) => {
+    const key = {
+      text: (page - 1) * 5 + (index + 1),
+      url: `https://t.me/c/${process.env.GROUP_ID.substr(
+        4,
+        Number.MAX_SAFE_INTEGER
+      )}/${learnedMessage.id}`,
+    };
+    keyboard.push([key]);
+  });
+  if (messages.length === 5 && page === 1) {
+    keyboard.push([
+      {
+        text: 'قدیمی ترها▶️',
+        callback_data: `page:${page + 1}-messageId:${
+          messageId === null ? message.message_id + 1 : message.message_id
+        }`,
+      },
+    ]);
+  } else if (messages.length === 5 && page > 1) {
+    keyboard.push([
+      {
+        text: '◀️جدید ترها',
+        callback_data: `page:${page - 1}-messageId:${message.message_id}`,
+      },
+      {
+        text: 'قدیمی ترها▶️',
+        callback_data: `page:${page + 1}-messageId:${message.message_id}`,
+      },
+    ]);
+  } else if (messages.length >= 1 && page > 1) {
+    keyboard.push([
+      {
+        text: '◀️جدید ترها',
+        callback_data: `page:${page - 1}-messageId:${message.message_id}`,
+      },
+    ]);
+  }
+
+  if (messageId !== null) {
+    return bot.editMessageText(
+      'لیست پیامایی که ازشون چیزی یادگرفتی این پایینه 😊',
+      {
+        message_id: messageId,
+        chat_id: message.chat.id,
+        reply_markup: { inline_keyboard: keyboard },
+      }
+    );
+  }
+  bot.sendMessage(
+    message.chat.id,
+    'لیست پیامایی که ازشون چیزی یادگرفتی این پایینه 😊',
+    {
+      reply_markup: { inline_keyboard: keyboard },
+      reply_to_message_id: message.message_id,
+    }
+  );
+};
+
 const onLearnedNewThing = async (message) => {
   if (
     message.chat.type !== 'supergroup' ||
@@ -310,7 +398,7 @@ const undefinedAction = (message) => {
   if (message.chat.type === 'private')
     bot.sendMessage(message.chat.id, 'نفهمیدم چی گفتی!', {
       reply_markup: JSON.stringify({
-        keyboard: [['آمار فعالیت']],
+        keyboard: [['آمار فعالیت'], ['چیا یادگرفتم؟']],
         resize_keyboard: true,
         one_time_keyboard: true,
       }),
@@ -326,6 +414,18 @@ const ALLOWED_MESSAGE_TYPE_FOR_UPDATING_LAST_ACTIVITY = [
   'poll',
 ];
 
+bot.on('callback_query', (callback) => {
+  const action = callback.data;
+  const message = callback.message;
+
+  const pattern = /page:([0-9]+)-messageId:([0-9]+)/.exec(action);
+
+  if (!pattern) return;
+  const page = +pattern[1];
+  const messageId = +pattern[2];
+
+  getThingsILearned(message, page, messageId);
+});
 bot.on('message', async (message, metadata) => {
   // send user message to log channel
   if (
@@ -365,6 +465,8 @@ bot.on('message', async (message, metadata) => {
   let learnfulDateCommand = /^\/learnfulDate$/.exec(message.text);
   let statCommand = /^\/stat$/.exec(message.text);
   let statKeyboard = /^آمار فعالیت$/.exec(message.text);
+  let thingsILearned = /^\/thingsILearned$/.exec(message.text);
+  let thingsILearnedKeyboard = /^چیا یادگرفتم؟$/.exec(message.text);
 
   if (startCommand) onStart(message);
   else if (getUsersCommand) getUsers(message);
@@ -379,6 +481,8 @@ bot.on('message', async (message, metadata) => {
   else if (learnfulDateCommand) getLearnfulDate(message);
   else if (statCommand) getStatistics(message);
   else if (statKeyboard) getStatistics(message);
+  else if (thingsILearned) getThingsILearned(message, 1);
+  else if (thingsILearnedKeyboard) getThingsILearned(message, 1);
   else undefinedAction(message);
 });
 
